@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final Function addExpense;
@@ -21,6 +22,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     'Entertainment',
     'Bills',
     'Travel',
+    'Transport',
     'Others'
   ];
 
@@ -60,10 +62,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F5F5),
       appBar: AppBar(
         title: Text('Add Expense'),
       ),
       body: Padding(
+        
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -77,6 +81,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             ),
             SizedBox(height: 20),
+            
             TextFormField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -91,34 +96,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 prefixText: 'GHc ',
               ),
             ),
+
             SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 1.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedDate == null
-                          ? 'No Date Chosen!'
-                          : 'Picked Date: ${_selectedDate!.toLocal()}'.split(' ')[0],
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _pickDate,
-                    child: Text('Choose Date'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-        
-              
-              
                Container(
               padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
               decoration: BoxDecoration(
@@ -143,8 +122,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
               ),
                ),
+                SizedBox(height: 20),
+
             
-            Spacer(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedDate == null
+                          ? 'No Date Chosen!'
+                          : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _pickDate,
+                    child: Text('Choose Date'),
+                  ),
+                ],
+              ),
+               SizedBox(height: 100),
+            
+            
+         
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

@@ -1,13 +1,14 @@
 import 'package:expense_app/model/expense.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
   final int index;
   final Function editExpense;
 
-  const EditExpenseScreen({super.key, 
+  const EditExpenseScreen({
+    super.key,
     required this.expense,
     required this.index,
     required this.editExpense,
@@ -22,7 +23,14 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   final _amountController = TextEditingController();
   late String _selectedCategory;
 
-  final List<String> _categories = ['Food', 'Entertainment', 'Bills', 'Travel', 'Others'];
+  final List<String> _categories = [
+    'Food',
+    'Entertainment',
+    'Bills',
+    'Travel',
+    'Transport',
+    'Others'
+  ];
 
   @override
   void initState() {
@@ -47,39 +55,84 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F5F5),
       appBar: AppBar(
         title: Text('Edit Expense'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          //  TextFormField(
+          //     controller: _titleController,
+          //     decoration: InputDecoration(
+          //       labelText: 'Description',
+          //       border: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(10.0),
+          //       ),
+          //     ),
+          //   ),
+
           children: [
-            TextField(
+            TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
             ),
-            TextField(
+            SizedBox(height: 20),
+            TextFormField(
               controller: _amountController,
-              decoration: InputDecoration(labelText: 'Amount'),
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Amount',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixText: 'GHc ',
+              ),
             ),
-            SizedBox(height: 10),
-            DropdownButton<String>(
-              value: _selectedCategory,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedCategory = newValue!;
-                });
-              },
-              items: _categories.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            SizedBox(height: 20),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 1.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue!;
+                    });
+                  },
+                  items:
+                      _categories.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
-            Spacer(),
+            SizedBox(height: 100),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: Size(400, 50),
+              ),
               onPressed: _submitEditExpense,
               child: Text('Save Changes'),
             ),

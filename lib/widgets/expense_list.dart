@@ -2,13 +2,13 @@ import 'package:expense_app/model/expense.dart';
 import 'package:expense_app/widgets/edit.dart';
 import 'package:flutter/material.dart';
 
-
 class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
   final Function(int) deleteExpense;
   final Function(int, Expense) editExpense;
 
-  const ExpenseList({super.key, 
+  const ExpenseList({
+    super.key,
     required this.expenses,
     required this.deleteExpense,
     required this.editExpense,
@@ -17,21 +17,29 @@ class ExpenseList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      shrinkWrap: true, // Allows ListView to fit its content
-  physics: NeverScrollableScrollPhysics(), // Prevents nested scroll conflicts
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemCount: expenses.length,
       itemBuilder: (ctx, index) {
         final expense = expenses[index];
         return Card(
-          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          color: Color(0xFFF5F5F5),
+          margin: EdgeInsets.symmetric(vertical: 10.0),
           child: ListTile(
             leading: CircleAvatar(
-              child: Text(expense.category[0]),
+              child: Icon(
+                expense.category == 'Food' ? Icons.restaurant: 
+                expense.category == 'Transport' ? Icons.directions_car : 
+                expense.category == 'Bills' ? Icons.payment :
+                expense.category == 'Travel' ? Icons.flight :
+                expense.category == 'Others' ? Icons.question_mark :
+                expense.category == 'Entertainment'? Icons.movie : 
+                    Icons.question_mark, // default icon
+              ),
             ),
-            
             title: Text(expense.title),
             subtitle: Text(
-              '\$${expense.amount.toStringAsFixed(2)} - ${expense.category}',
+              'GHc ${expense.amount.toStringAsFixed(2)} - ${expense.category}',
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

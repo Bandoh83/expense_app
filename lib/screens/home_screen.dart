@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0.0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       backgroundColor: Colors.white,
       body: Padding(
@@ -131,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }).toList(),
             ),
+            SizedBox(height: 20),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -230,7 +231,7 @@ class WalletCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "\$${estimatedBudget.toStringAsFixed(2)}",
+                  "GHc ${estimatedBudget.toStringAsFixed(2)}",
                   style: TextStyle(
                     fontSize: 24,
                     color: Colors.white,
@@ -245,11 +246,11 @@ class WalletCard extends StatelessWidget {
               children: [
                 _buildInfoColumn(
                   title: "Total Expenses",
-                  value: "\$${totalExpenses.toStringAsFixed(2)}",
+                  value: "GHc ${totalExpenses.toStringAsFixed(2)}",
                 ),
                 _buildInfoColumn(
                   title: "Available Balance",
-                  value: "\$${availableBalance.toStringAsFixed(2)}",
+                  value: "GHc ${availableBalance.toStringAsFixed(2)}",
                   valueColor: availableBalance < 0 ? Colors.red : Colors.green,
                 ),
               ],
@@ -308,14 +309,15 @@ class AnalyticsSection extends StatelessWidget {
         'Entertainment': Colors.purple,
         'Bills': Colors.teal,
         'Travel': Colors.grey,
+        'Transport': Colors.orange,
         'Others': Colors.pinkAccent
       };
 
       return PieChartSectionData(
         color: categoryColors[entry.key],
         value: entry.value,
-        title: '${entry.key}: \$${entry.value.toStringAsFixed(2)}',
-        radius: 40,
+        title: entry.key,
+        radius: 90,
       );
     }).toList();
   }
@@ -325,7 +327,7 @@ class AnalyticsSection extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: AspectRatio(
-        aspectRatio: 3,
+        aspectRatio: 2,
         child: PieChart(
           PieChartData(
             sections: _getSections(),
