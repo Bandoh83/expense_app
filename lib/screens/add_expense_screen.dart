@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final Function addExpense;
@@ -8,23 +9,54 @@ class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen(this.addExpense, {super.key});
 
   @override
-  _AddExpenseScreenState createState() => _AddExpenseScreenState();
+  AddExpenseScreenState createState() => AddExpenseScreenState();
 }
 
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
+class AddExpenseScreenState extends State<AddExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
   String _selectedCategory = 'Food';
 
-  final List<String> _categories = [
+  List<String> _categories = [
     'Food',
     'Entertainment',
     'Bills',
     'Travel',
-    'Transport',
-    'Others'
+    'Transport'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedCategories = prefs.getStringList('categories');
+    if (savedCategories != null && savedCategories.isNotEmpty) {
+      setState(() {
+        _categories = savedCategories;
+      });
+    }
+  }
+
+  Future<void> _saveCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('categories', _categories);
+  }
+
+  void _addNewCategory(String newCategory) {
+    if (newCategory.isEmpty) return;
+
+    setState(() {
+      _categories.add(newCategory);
+      _selectedCategory = newCategory;
+    });
+
+    _saveCategories();
+  }
 
   void _submitExpense() {
     final title = _titleController.text;
@@ -67,7 +99,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         title: Text('Add Expense'),
       ),
       body: Padding(
-        
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -81,7 +112,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             ),
             SizedBox(height: 20),
-            
             TextFormField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -96,10 +126,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 prefixText: 'GHc ',
               ),
             ),
-
             SizedBox(height: 20),
-               Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 1.0),
                 borderRadius: BorderRadius.circular(10.0),
@@ -109,45 +139,87 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   value: _selectedCategory,
                   isExpanded: true,
                   onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedCategory = newValue!;
-                    });
+                    if (newValue == 'Add new category') {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          final newCategoryController = TextEditingController();
+                          return AlertDialog(
+                            title: Text('Add new category'),
+                            content: TextField(
+                              controller: newCategoryController,
+                              decoration:
+                                  InputDecoration(labelText: 'Category Name'),
+                            ),
+                            actions: [
+                              TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: Text('Add'),
+                                onPressed: () {
+                                  final newCategory =
+                                      newCategoryController.text.trim();
+                                  if (newCategory.isNotEmpty) {
+                                    _addNewCategory(newCategory);
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      setState(() {
+                        _selectedCategory = newValue!;
+                      });
+                    }
                   },
-                  items: _categories.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                  items:
+                      _categories.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList() +
+                          [
+                            DropdownMenuItem<String>(
+                              value: 'Add new category',
+                              child: Text(
+                                'Add a category',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                 ),
               ),
-               ),
-                SizedBox(height: 20),
-
-            
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedDate == null
-                          ? 'No Date Chosen!'
-                          : DateFormat('yyyy-MM-dd').format(_selectedDate!),
-                      style: TextStyle(fontSize: 16),
-                    ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedDate == null
+                        ? 'No Date Chosen!'
+                        : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                    style: TextStyle(fontSize: 16),
                   ),
-                  TextButton(
-                    onPressed: _pickDate,
-                    child: Text('Choose Date'),
-                  ),
-                ],
-              ),
-               SizedBox(height: 100),
-            
-            
-         
+                ),
+                TextButton(
+                  onPressed: _pickDate,
+                  child:
+                      Text('Choose Date', style: TextStyle(color: Colors.blue)),
+                ),
+              ],
+            ),
+            SizedBox(height: 100),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFF2F4858),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

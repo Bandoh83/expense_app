@@ -1,21 +1,37 @@
 import 'package:expense_app/model/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../widgets/expense_list.dart';
 import 'add_expense_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:iconsax/iconsax.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final double amount;
+
+  const HomeScreen({super.key, required this.amount});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final List<Expense> _expenses = [];
   String _selectedFilter = 'Today';
-  final double _estimatedBudget = 2000.0;
+  late double _estimatedBudget;
+
+  @override
+  void initState() {
+    super.initState();
+    _estimatedBudget = widget.amount;
+  }
+
+  void _updateEstimatedBudget(double newBudget) {
+    setState(() {
+      _estimatedBudget = newBudget;
+    });
+  }
 
   void _addExpense(
       String title, double amount, DateTime date, String category) {
@@ -46,21 +62,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (_selectedFilter == 'Today') {
       return _expenses.where((expense) {
-        return expense.date.year == now.year &&
-            expense.date.month == now.month &&
-            expense.date.day == now.day;
+        return expense.date.difference(now).inDays == 0;
       }).toList();
     } else if (_selectedFilter == 'Week') {
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      final endOfWeek = startOfWeek.add(Duration(days: 6));
       return _expenses.where((expense) {
-        return expense.date
-                .isAfter(startOfWeek.subtract(Duration(seconds: 1))) &&
-            expense.date.isBefore(endOfWeek.add(Duration(seconds: 1)));
+        return expense.date.difference(startOfWeek).inDays >= 0 &&
+            expense.date.difference(startOfWeek).inDays <= 6;
       }).toList();
     } else if (_selectedFilter == 'Month') {
       return _expenses.where((expense) {
-        return expense.date.year == now.year && expense.date.month == now.month;
+        return expense.date.difference(DateTime(now.year, now.month)).inDays >=
+                0 &&
+            expense.date.difference(DateTime(now.year, now.month + 1)).inDays <
+                0;
       }).toList();
     }
 
@@ -74,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0.0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       backgroundColor: Colors.white,
       body: Padding(
@@ -99,6 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
             WalletCard(
               estimatedBudget: _estimatedBudget,
               totalExpenses: _calculateTotal(),
+              onSave: (newBudget) {
+                _updateEstimatedBudget(newBudget);
+              },
             ),
             SizedBox(height: 20),
             Row(
@@ -115,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                     decoration: BoxDecoration(
                       color: _selectedFilter == filter
-                          ? Colors.blue
+                          ? Color(0xFF3F7CAC)
                           : Colors.grey[200],
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -136,6 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    AnalyticsSection(
+                        expenses:
+                            filteredExpenses.isEmpty ? [] : filteredExpenses),
                     filteredExpenses.isEmpty
                         ? Center(
                             child: Padding(
@@ -153,16 +174,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             deleteExpense: _deleteExpense,
                             editExpense: _editExpense,
                           ),
-                    AnalyticsSection(
-                        expenses:
-                            filteredExpenses.isEmpty ? [] : filteredExpenses),
                   ],
                 ),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFF2F4858),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -190,9 +208,13 @@ class _HomeScreenState extends State<HomeScreen> {
 class WalletCard extends StatelessWidget {
   final double estimatedBudget;
   final double totalExpenses;
+  final Function(double) onSave;
 
   const WalletCard(
-      {super.key, required this.estimatedBudget, required this.totalExpenses});
+      {super.key,
+      required this.estimatedBudget,
+      required this.totalExpenses,
+      required this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -201,14 +223,14 @@ class WalletCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue, Colors.purple],
+          colors: [Color(0xFF33658A), Color(0xFF86BBD8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: const Color.fromARGB(80, 0, 0, 0),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -230,13 +252,57 @@ class WalletCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  "GHc ${estimatedBudget.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "GHc ${NumberFormat("#,##0.00").format(estimatedBudget)}",
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        
+                        showDialog(
+                          context: context,
+                          builder: (ctx) {
+                            final amountController = TextEditingController(
+                              text: estimatedBudget.toStringAsFixed(2),
+                            );
+
+                            return AlertDialog(
+                              title: Text('Edit Estimated Budget'),
+                              content: TextField(
+                                controller: amountController,
+                                keyboardType: TextInputType.number,
+                              ),
+                              actions: [
+                                TextButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Save'),
+                                  onPressed: () {
+                                    
+                                    onSave(
+                                        double.parse(amountController.text));
+                                    Navigator.of(ctx).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Icon(Iconsax.edit, color: Colors.white),
+                    ),
+                  ],
                 )
               ],
             ),
@@ -246,12 +312,12 @@ class WalletCard extends StatelessWidget {
               children: [
                 _buildInfoColumn(
                   title: "Total Expenses",
-                  value: "GHc ${totalExpenses.toStringAsFixed(2)}",
+                  value:   "GHc ${NumberFormat("#,##0.00").format(totalExpenses)}",
                 ),
                 _buildInfoColumn(
                   title: "Available Balance",
-                  value: "GHc ${availableBalance.toStringAsFixed(2)}",
-                  valueColor: availableBalance < 0 ? Colors.red : Colors.green,
+                  value:   "GHc ${NumberFormat("#,##0.00").format(availableBalance)}",
+                  valueColor: availableBalance < 0 ? Colors.red : const Color.fromARGB(255, 128, 255, 132),
                 ),
               ],
             ),
@@ -271,10 +337,7 @@ class WalletCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.8),
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.white),
         ),
         SizedBox(height: 5),
         Text(
@@ -305,19 +368,22 @@ class AnalyticsSection extends StatelessWidget {
 
     return categoryAmounts.entries.map((entry) {
       final Map<String, Color> categoryColors = {
-        'Food': Colors.blue,
-        'Entertainment': Colors.purple,
-        'Bills': Colors.teal,
-        'Travel': Colors.grey,
-        'Transport': Colors.orange,
-        'Others': Colors.pinkAccent
+        'Food': Color(0xFF33658A),
+        'Entertainment': Color(0xFF2F4858),
+        'Bills': Color(0xFFF6AE2D),
+        'Travel': Color(0xFFF26419),
+        'Transport': Color(0xFF86BBD8),
+        'Others': Color(0xFF33654A)
       };
 
       return PieChartSectionData(
         color: categoryColors[entry.key],
         value: entry.value,
         title: entry.key,
-        radius: 90,
+        titleStyle: TextStyle(
+          color: Colors.white,
+        ),
+        radius: 110,
       );
     }).toList();
   }
@@ -327,7 +393,7 @@ class AnalyticsSection extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: AspectRatio(
-        aspectRatio: 2,
+        aspectRatio: 1.5,
         child: PieChart(
           PieChartData(
             sections: _getSections(),

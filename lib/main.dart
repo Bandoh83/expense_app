@@ -1,5 +1,6 @@
-import 'package:expense_app/screens/home_screen.dart';
+import 'package:expense_app/screens/register.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 void main() {
@@ -15,10 +16,12 @@ class ExpenseTrackerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Expense Tracker',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-       // visualDensity: VisualDensity.adaptivePlatformDensity,
+       textTheme: GoogleFonts.latoTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: Register(),
     );
   }
 }

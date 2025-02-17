@@ -1,6 +1,8 @@
 import 'package:expense_app/model/expense.dart';
 import 'package:expense_app/widgets/edit.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 
 class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
@@ -27,25 +29,26 @@ class ExpenseList extends StatelessWidget {
           margin: EdgeInsets.symmetric(vertical: 10.0),
           child: ListTile(
             leading: CircleAvatar(
+              backgroundColor: Colors.white,
               child: Icon(
-                expense.category == 'Food' ? Icons.restaurant: 
-                expense.category == 'Transport' ? Icons.directions_car : 
-                expense.category == 'Bills' ? Icons.payment :
-                expense.category == 'Travel' ? Icons.flight :
-                expense.category == 'Others' ? Icons.question_mark :
-                expense.category == 'Entertainment'? Icons.movie : 
-                    Icons.question_mark, // default icon
+                expense.category == 'Food' ? Icons.dining_outlined: 
+                expense.category == 'Transport' ? Iconsax.car : 
+                expense.category == 'Bills' ? Iconsax.moneys :
+                expense.category == 'Travel' ? Iconsax.airplane :
+                expense.category == 'Entertainment'? Iconsax.speaker : 
+                    Icons.question_mark, 
+                    color: Color(0xFF3F7CAC),
               ),
             ),
             title: Text(expense.title),
             subtitle: Text(
-              'GHc ${expense.amount.toStringAsFixed(2)} - ${expense.category}',
+              "GHc ${NumberFormat("#,##0.00").format(expense.amount)} - ${expense.category}",
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit, color: Colors.blue),
+                  icon: Icon(Iconsax.edit_24, color: Colors.blue),
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -59,7 +62,7 @@ class ExpenseList extends StatelessWidget {
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
+                  icon: Icon(Iconsax.trash, color: Colors.red),
                   onPressed: () => deleteExpense(index),
                 ),
               ],
